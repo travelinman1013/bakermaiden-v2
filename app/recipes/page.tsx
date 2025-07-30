@@ -5,6 +5,7 @@ import { Plus, Search, Edit, Trash2, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { RecipeForm } from "@/components/forms/recipe-form"
 
 // Mock data - this will come from API later
 const mockRecipes = [
@@ -49,6 +50,12 @@ const mockRecipes = [
 export default function RecipesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [recipes] = useState(mockRecipes)
+  const [showForm, setShowForm] = useState(false)
+
+  const handleAddRecipe = (data: any) => {
+    console.log("Adding recipe:", data)
+    // This will be connected to API later
+  }
 
   const filteredRecipes = recipes.filter(recipe =>
     recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,7 +70,10 @@ export default function RecipesPage() {
           <h1 className="text-3xl font-bold text-gray-900">Recipes</h1>
           <p className="text-gray-600 mt-2">Manage and organize your bakery recipes</p>
         </div>
-        <Button className="flex items-center space-x-2">
+        <Button 
+          className="flex items-center space-x-2"
+          onClick={() => setShowForm(true)}
+        >
           <Plus className="h-4 w-4" />
           <span>Add New Recipe</span>
         </Button>
@@ -143,12 +153,19 @@ export default function RecipesPage() {
           <p className="text-gray-600 mb-6">
             {searchTerm ? `No recipes match "${searchTerm}"` : "Get started by adding your first recipe"}
           </p>
-          <Button>
+          <Button onClick={() => setShowForm(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add New Recipe
           </Button>
         </div>
       )}
+
+      {/* Recipe Form Modal */}
+      <RecipeForm
+        open={showForm}
+        onOpenChange={setShowForm}
+        onSubmit={handleAddRecipe}
+      />
     </div>
   )
 }

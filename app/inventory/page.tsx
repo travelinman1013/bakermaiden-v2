@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { IngredientForm } from "@/components/forms/ingredient-form"
 
 // Mock data - this will come from API later
 const mockIngredients = [
@@ -88,6 +89,12 @@ function getStockColor(status: string) {
 export default function InventoryPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [ingredients] = useState(mockIngredients)
+  const [showForm, setShowForm] = useState(false)
+
+  const handleAddIngredient = (data: any) => {
+    console.log("Adding ingredient:", data)
+    // This will be connected to API later
+  }
 
   const filteredIngredients = ingredients.filter(ingredient =>
     ingredient.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -109,7 +116,10 @@ export default function InventoryPage() {
             </div>
           )}
         </div>
-        <Button className="flex items-center space-x-2">
+        <Button 
+          className="flex items-center space-x-2"
+          onClick={() => setShowForm(true)}
+        >
           <Plus className="h-4 w-4" />
           <span>Add Ingredient</span>
         </Button>
@@ -222,12 +232,19 @@ export default function InventoryPage() {
           <p className="text-gray-600 mb-6">
             {searchTerm ? `No ingredients match "${searchTerm}"` : "Get started by adding your first ingredient"}
           </p>
-          <Button>
+          <Button onClick={() => setShowForm(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Ingredient
           </Button>
         </div>
       )}
+
+      {/* Ingredient Form Modal */}
+      <IngredientForm
+        open={showForm}
+        onOpenChange={setShowForm}
+        onSubmit={handleAddIngredient}
+      />
     </div>
   )
 }
