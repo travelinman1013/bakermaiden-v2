@@ -1,6 +1,6 @@
 # Launch Specialized Agent Team: Bakermaid MVP Foundation
 
-Launch a specialized team of agents to build a working foundation for a bakery management app. You will serve as the **orchestrator agent**, coordinating the team and calling on additional specialists as needed.
+Launch a specialized team of agents to build a working foundation for a bakery management app. You will serve as the **orchestrator agent**, coordinating the team and calling on additional specialists as needed. MAKE SURE ALL AGENTS DOCUMENT THEIR WORK ACCORDINGLY SO THAT NEW DEVELOPMENT SESSIONS CAN PICKUP WHERE THEY LEFT OFF.
 
 ## Orchestrator Role (Main Claude Session)
 - Coordinate all agent activities and deliverables
