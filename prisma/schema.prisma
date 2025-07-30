@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Recipe model - stores recipe information
+model Recipe {
+  id          String   @id @default(cuid())
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relationship to recipe ingredients (many-to-many through RecipeIngredient)
+  recipeIngredients RecipeIngredient[]
+
+  @@map("recipes")
+  @@index([name])
+}
+
+// Ingredient model - stores ingredient inventory information
+model Ingredient {
+  id           String  @id @default(cuid())
+  name         String  @db.VarChar(100)
+  unit         String  @db.VarChar(20) // e.g., "cups", "lbs", "oz", "grams"
+  currentStock Decimal @default(0) @map("current_stock") @db.Decimal(10, 3)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relationship to recipe ingredients (many-to-many through RecipeIngredient)
+  recipeIngredients RecipeIngredient[]
+
+  @@map("ingredients")
+  @@index([name])
+}
+
+// Join table for many-to-many relationship between recipes and ingredients
+model RecipeIngredient {
+  id           String     @id @default(cuid())
+  recipeId     String     @map("recipe_id")
+  ingredientId String     @map("ingredient_id")
+  quantity     Decimal    @db.Decimal(10, 3)
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  // Relations
+  recipe     Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@map("recipe_ingredients")
+  @@unique([recipeId, ingredientId]) // Prevent duplicate ingredient entries per recipe
+  @@index([recipeId])
+  @@index([ingredientId])
+}
