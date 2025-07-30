@@ -15,6 +15,8 @@ model Recipe {
   id          String   @id @default(cuid())
   name        String   @db.VarChar(100)
   description String?  @db.Text
+  servings    Int?
+  prepTime    String?  @db.VarChar(50) @map("prep_time")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -31,6 +33,9 @@ model Ingredient {
   name         String  @db.VarChar(100)
   unit         String  @db.VarChar(20) // e.g., "cups", "lbs", "oz", "grams"
   currentStock Decimal @default(0) @map("current_stock") @db.Decimal(10, 3)
+  minStock     Decimal? @map("min_stock") @db.Decimal(10, 3)
+  maxStock     Decimal? @map("max_stock") @db.Decimal(10, 3)
+  unitCost     Decimal? @map("unit_cost") @db.Decimal(10, 2)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 

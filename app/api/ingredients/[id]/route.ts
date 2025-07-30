@@ -54,6 +54,9 @@ export async function GET(
         name: ingredient.name,
         unit: ingredient.unit,
         currentStock: Number(ingredient.currentStock),
+        minStock: ingredient.minStock ? Number(ingredient.minStock) : null,
+        maxStock: ingredient.maxStock ? Number(ingredient.maxStock) : null,
+        unitCost: ingredient.unitCost ? Number(ingredient.unitCost) : null,
         createdAt: ingredient.createdAt,
         updatedAt: ingredient.updatedAt,
         usedInRecipes: ingredient.recipeIngredients.map(ri => ({
@@ -131,7 +134,10 @@ export async function PUT(
             ...(validatedData.unit && { unit: validatedData.unit }),
             ...(validatedData.currentStock !== undefined && { 
               currentStock: validatedData.currentStock 
-            })
+            }),
+            ...(validatedData.minStock !== undefined && { minStock: validatedData.minStock }),
+            ...(validatedData.maxStock !== undefined && { maxStock: validatedData.maxStock }),
+            ...(validatedData.unitCost !== undefined && { unitCost: validatedData.unitCost })
           }
         })
       },
@@ -144,6 +150,9 @@ export async function PUT(
         name: ingredient.name,
         unit: ingredient.unit,
         currentStock: Number(ingredient.currentStock),
+        minStock: ingredient.minStock ? Number(ingredient.minStock) : null,
+        maxStock: ingredient.maxStock ? Number(ingredient.maxStock) : null,
+        unitCost: ingredient.unitCost ? Number(ingredient.unitCost) : null,
         createdAt: ingredient.createdAt,
         updatedAt: ingredient.updatedAt
       }

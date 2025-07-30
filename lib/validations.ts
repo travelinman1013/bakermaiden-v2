@@ -11,6 +11,16 @@ export const createRecipeSchema = z.object({
     .string()
     .max(2000, 'Description must be 2000 characters or less')
     .optional()
+    .nullable(),
+  servings: z
+    .number()
+    .min(1, 'Servings must be at least 1')
+    .max(1000, 'Servings must be less than 1000')
+    .optional(),
+  prepTime: z
+    .string()
+    .max(50, 'Prep time must be 50 characters or less')
+    .optional()
     .nullable()
 })
 
@@ -24,6 +34,16 @@ export const updateRecipeSchema = z.object({
   description: z
     .string()
     .max(2000, 'Description must be 2000 characters or less')
+    .optional()
+    .nullable(),
+  servings: z
+    .number()
+    .min(1, 'Servings must be at least 1')
+    .max(1000, 'Servings must be less than 1000')
+    .optional(),
+  prepTime: z
+    .string()
+    .max(50, 'Prep time must be 50 characters or less')
     .optional()
     .nullable()
 })
@@ -47,7 +67,19 @@ export const createIngredientSchema = z.object({
   currentStock: z
     .number()
     .min(0, 'Current stock cannot be negative')
-    .default(0)
+    .default(0),
+  minStock: z
+    .number()
+    .min(0, 'Minimum stock cannot be negative')
+    .optional(),
+  maxStock: z
+    .number()
+    .min(1, 'Maximum stock must be at least 1')
+    .optional(),
+  unitCost: z
+    .number()
+    .min(0, 'Unit cost cannot be negative')
+    .optional()
 })
 
 export const updateIngredientSchema = z.object({
@@ -66,6 +98,18 @@ export const updateIngredientSchema = z.object({
   currentStock: z
     .number()
     .min(0, 'Current stock cannot be negative')
+    .optional(),
+  minStock: z
+    .number()
+    .min(0, 'Minimum stock cannot be negative')
+    .optional(),
+  maxStock: z
+    .number()
+    .min(1, 'Maximum stock must be at least 1')
+    .optional(),
+  unitCost: z
+    .number()
+    .min(0, 'Unit cost cannot be negative')
     .optional()
 })
 

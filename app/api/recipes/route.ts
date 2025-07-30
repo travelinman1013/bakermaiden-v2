@@ -43,6 +43,8 @@ export async function GET(request: NextRequest) {
         id: recipe.id,
         name: recipe.name,
         description: recipe.description,
+        servings: recipe.servings,
+        prepTime: recipe.prepTime,
         createdAt: recipe.createdAt,
         updatedAt: recipe.updatedAt,
         ingredientCount: recipe._count.recipeIngredients
@@ -95,7 +97,9 @@ export async function POST(request: NextRequest) {
         return await prisma.recipe.create({
           data: {
             name: validatedData.name,
-            description: validatedData.description || null
+            description: validatedData.description || null,
+            servings: validatedData.servings || null,
+            prepTime: validatedData.prepTime || null
           }
         })
       },
@@ -108,6 +112,8 @@ export async function POST(request: NextRequest) {
           id: recipe.id,
           name: recipe.name,
           description: recipe.description,
+          servings: recipe.servings,
+          prepTime: recipe.prepTime,
           createdAt: recipe.createdAt,
           updatedAt: recipe.updatedAt
         }

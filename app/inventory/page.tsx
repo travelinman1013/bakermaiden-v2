@@ -1,78 +1,30 @@
 "use client"
 
-import { useState } from "react"
-import { Plus, Search, Edit, Trash2, AlertTriangle, Package } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Plus, Search, Edit, Trash2, AlertTriangle, Package, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
 import { IngredientForm } from "@/components/forms/ingredient-form"
 
-// Mock data - this will come from API later
-const mockIngredients = [
-  {
-    id: 1,
-    name: "All-Purpose Flour",
-    unit: "lbs",
-    currentStock: 25,
-    minStock: 10,
-    maxStock: 50,
-    unitCost: 2.50,
-    lastUpdated: "2024-01-15"
-  },
-  {
-    id: 2,
-    name: "Granulated Sugar",
-    unit: "lbs",
-    currentStock: 15,
-    minStock: 8,
-    maxStock: 30,
-    unitCost: 1.75,
-    lastUpdated: "2024-01-14"
-  },
-  {
-    id: 3,
-    name: "Vanilla Extract",
-    unit: "oz",
-    currentStock: 3,
-    minStock: 5,
-    maxStock: 15,
-    unitCost: 12.00,
-    lastUpdated: "2024-01-13"
-  },
-  {
-    id: 4,
-    name: "Active Dry Yeast",
-    unit: "packets",
-    currentStock: 2,
-    minStock: 5,
-    maxStock: 20,
-    unitCost: 0.50,
-    lastUpdated: "2024-01-12"
-  },
-  {
-    id: 5,
-    name: "Unsalted Butter",
-    unit: "lbs",
-    currentStock: 8,
-    minStock: 5,
-    maxStock: 20,
-    unitCost: 4.25,
-    lastUpdated: "2024-01-15"
-  },
-  {
-    id: 6,
-    name: "Large Eggs",
-    unit: "dozen",
-    currentStock: 6,
-    minStock: 3,
-    maxStock: 12,
-    unitCost: 3.50,
-    lastUpdated: "2024-01-14"
-  }
-]
+// Ingredient type definition
+type Ingredient = {
+  id: string
+  name: string
+  unit: string
+  currentStock: number
+  minStock: number | null
+  maxStock: number | null
+  unitCost: number | null
+  createdAt: string
+  updatedAt: string
+  usedInRecipes?: number
+}
 
-function getStockStatus(current: number, min: number) {
+function getStockStatus(current: number, min: number | null) {
+  if (!min) return "good" // If no min stock set, assume good
   if (current <= min) return "low"
   if (current <= min * 1.5) return "medium"
   return "good"
@@ -88,12 +40,163 @@ function getStockColor(status: string) {
 
 export default function InventoryPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [ingredients] = useState(mockIngredients)
+  const [ingredients, setIngredients] = useState<Ingredient[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [editingIngredient, setEditingIngredient] = useState<Ingredient | null>(null)
+  const { toast } = useToast()
 
-  const handleAddIngredient = (data: any) => {
-    console.log("Adding ingredient:", data)
-    // This will be connected to API later
+  // Fetch ingredients from API
+  const fetchIngredients = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/ingredients')
+      if (!response.ok) {
+        throw new Error('Failed to fetch ingredients')
+      }
+      const data = await response.json()
+      setIngredients(data.ingredients)
+    } catch (error) {
+      console.error('Error fetching ingredients:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load ingredients. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Load ingredients on mount
+  useEffect(() => {
+    fetchIngredients()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleAddIngredient = async (data: any) => {
+    try {
+      const response = await fetch('/api/ingredients', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create ingredient')
+      }
+
+      const result = await response.json()
+      
+      // Add the new ingredient to the list
+      setIngredients(prev => [{
+        ...result.ingredient,
+        usedInRecipes: 0
+      }, ...prev])
+      
+      toast({
+        title: "Success",
+        description: "Ingredient created successfully!",
+      })
+      
+      setShowForm(false)
+    } catch (error) {
+      console.error('Error creating ingredient:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create ingredient. Please try again.",
+        variant: "destructive",
+      })
+      throw error // Re-throw to let the form handle it
+    }
+  }
+
+  const handleEditIngredient = async (data: any) => {
+    if (!editingIngredient) return
+    
+    try {
+      const response = await fetch(`/api/ingredients/${editingIngredient.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update ingredient')
+      }
+
+      const result = await response.json()
+      
+      // Update the ingredient in the list
+      setIngredients(prev => prev.map(ingredient => 
+        ingredient.id === editingIngredient.id 
+          ? { ...result.ingredient, usedInRecipes: ingredient.usedInRecipes }
+          : ingredient
+      ))
+      
+      toast({
+        title: "Success",
+        description: "Ingredient updated successfully!",
+      })
+      
+      setEditingIngredient(null)
+      setShowForm(false)
+    } catch (error) {
+      console.error('Error updating ingredient:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update ingredient. Please try again.",
+        variant: "destructive",
+      })
+      throw error
+    }
+  }
+
+  const handleDeleteIngredient = async (ingredientId: string) => {
+    if (!confirm('Are you sure you want to delete this ingredient?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/ingredients/${ingredientId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete ingredient')
+      }
+
+      // Remove the ingredient from the list
+      setIngredients(prev => prev.filter(ingredient => ingredient.id !== ingredientId))
+      
+      toast({
+        title: "Success",
+        description: "Ingredient deleted successfully!",
+      })
+    } catch (error) {
+      console.error('Error deleting ingredient:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete ingredient. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const openEditForm = (ingredient: Ingredient) => {
+    setEditingIngredient(ingredient)
+    setShowForm(true)
+  }
+
+  const closeForm = () => {
+    setEditingIngredient(null)
+    setShowForm(false)
   }
 
   const filteredIngredients = ingredients.filter(ingredient =>
@@ -119,6 +222,7 @@ export default function InventoryPage() {
         <Button 
           className="flex items-center space-x-2"
           onClick={() => setShowForm(true)}
+          disabled={loading}
         >
           <Plus className="h-4 w-4" />
           <span>Add Ingredient</span>
@@ -139,8 +243,17 @@ export default function InventoryPage() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2 text-gray-600">Loading ingredients...</span>
+        </div>
+      )}
+
       {/* Inventory Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {!loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredIngredients.map((ingredient) => {
           const stockStatus = getStockStatus(ingredient.currentStock, ingredient.minStock)
           const stockColor = getStockColor(stockStatus)
@@ -152,14 +265,24 @@ export default function InventoryPage() {
                   <div className="flex-1">
                     <CardTitle className="text-lg">{ingredient.name}</CardTitle>
                     <CardDescription className="mt-1">
-                      ${ingredient.unitCost.toFixed(2)} per {ingredient.unit}
+                      {ingredient.unitCost ? `$${ingredient.unitCost.toFixed(2)} per ${ingredient.unit}` : `Unit: ${ingredient.unit}`}
                     </CardDescription>
                   </div>
                   <div className="flex space-x-1 ml-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => openEditForm(ingredient)}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => handleDeleteIngredient(ingredient.id)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -180,9 +303,13 @@ export default function InventoryPage() {
                       <div className="text-2xl font-bold">
                         {ingredient.currentStock} {ingredient.unit}
                       </div>
-                      <div className="text-sm opacity-75">
-                        Min: {ingredient.minStock} | Max: {ingredient.maxStock}
-                      </div>
+                      {(ingredient.minStock || ingredient.maxStock) && (
+                        <div className="text-sm opacity-75">
+                          {ingredient.minStock && `Min: ${ingredient.minStock}`}
+                          {ingredient.minStock && ingredient.maxStock && " | "}
+                          {ingredient.maxStock && `Max: ${ingredient.maxStock}`}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -201,7 +328,7 @@ export default function InventoryPage() {
 
                   {/* Last Updated */}
                   <div className="text-xs text-gray-400 border-t pt-2">
-                    Last updated: {new Date(ingredient.lastUpdated).toLocaleDateString()}
+                    Last updated: {new Date(ingredient.updatedAt).toLocaleDateString()}
                   </div>
 
                   {/* Actions */}          
@@ -220,10 +347,11 @@ export default function InventoryPage() {
             </Card>
           )
         })}
-      </div>
+        </div>
+      )}
 
       {/* Empty State */}
-      {filteredIngredients.length === 0 && (
+      {!loading && filteredIngredients.length === 0 && (
         <div className="text-center py-12">
           <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
             <Search className="h-8 w-8 text-gray-400" />
@@ -242,8 +370,17 @@ export default function InventoryPage() {
       {/* Ingredient Form Modal */}
       <IngredientForm
         open={showForm}
-        onOpenChange={setShowForm}
-        onSubmit={handleAddIngredient}
+        onOpenChange={closeForm}
+        onSubmit={editingIngredient ? handleEditIngredient : handleAddIngredient}
+        initialData={editingIngredient ? {
+          name: editingIngredient.name,
+          unit: editingIngredient.unit,
+          currentStock: editingIngredient.currentStock,
+          minStock: editingIngredient.minStock || undefined,
+          maxStock: editingIngredient.maxStock || undefined,
+          unitCost: editingIngredient.unitCost || undefined,
+        } : undefined}
+        isEditing={!!editingIngredient}
       />
     </div>
   )

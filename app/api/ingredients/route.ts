@@ -44,6 +44,9 @@ export async function GET(request: NextRequest) {
         name: ingredient.name,
         unit: ingredient.unit,
         currentStock: Number(ingredient.currentStock),
+        minStock: ingredient.minStock ? Number(ingredient.minStock) : null,
+        maxStock: ingredient.maxStock ? Number(ingredient.maxStock) : null,
+        unitCost: ingredient.unitCost ? Number(ingredient.unitCost) : null,
         createdAt: ingredient.createdAt,
         updatedAt: ingredient.updatedAt,
         usedInRecipes: ingredient._count.recipeIngredients
@@ -97,7 +100,10 @@ export async function POST(request: NextRequest) {
           data: {
             name: validatedData.name,
             unit: validatedData.unit,
-            currentStock: validatedData.currentStock
+            currentStock: validatedData.currentStock,
+            minStock: validatedData.minStock || null,
+            maxStock: validatedData.maxStock || null,
+            unitCost: validatedData.unitCost || null
           }
         })
       },
@@ -111,6 +117,9 @@ export async function POST(request: NextRequest) {
           name: ingredient.name,
           unit: ingredient.unit,
           currentStock: Number(ingredient.currentStock),
+          minStock: ingredient.minStock ? Number(ingredient.minStock) : null,
+          maxStock: ingredient.maxStock ? Number(ingredient.maxStock) : null,
+          unitCost: ingredient.unitCost ? Number(ingredient.unitCost) : null,
           createdAt: ingredient.createdAt,
           updatedAt: ingredient.updatedAt
         }

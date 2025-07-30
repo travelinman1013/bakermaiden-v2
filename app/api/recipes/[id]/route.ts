@@ -46,6 +46,8 @@ export async function GET(
         id: recipe.id,
         name: recipe.name,
         description: recipe.description,
+        servings: recipe.servings,
+        prepTime: recipe.prepTime,
         createdAt: recipe.createdAt,
         updatedAt: recipe.updatedAt,
         ingredients: recipe.recipeIngredients.map(ri => ({
@@ -127,7 +129,9 @@ export async function PUT(
             ...(validatedData.name && { name: validatedData.name }),
             ...(validatedData.description !== undefined && { 
               description: validatedData.description 
-            })
+            }),
+            ...(validatedData.servings !== undefined && { servings: validatedData.servings }),
+            ...(validatedData.prepTime !== undefined && { prepTime: validatedData.prepTime })
           }
         })
       },
@@ -139,6 +143,8 @@ export async function PUT(
         id: recipe.id,
         name: recipe.name,
         description: recipe.description,
+        servings: recipe.servings,
+        prepTime: recipe.prepTime,
         createdAt: recipe.createdAt,
         updatedAt: recipe.updatedAt
       }

@@ -11,9 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 
 const recipeSchema = z.object({
   name: z.string().min(1, "Recipe name is required").max(100, "Name must be less than 100 characters"),
-  description: z.string().min(1, "Description is required").max(500, "Description must be less than 500 characters"),
-  servings: z.coerce.number().min(1, "Servings must be at least 1").max(1000, "Servings must be less than 1000"),
-  prepTime: z.string().min(1, "Prep time is required"),
+  description: z.string().max(2000, "Description must be less than 2000 characters").optional(),
+  servings: z.coerce.number().min(1, "Servings must be at least 1").max(1000, "Servings must be less than 1000").optional(),
+  prepTime: z.string().max(50, "Prep time must be 50 characters or less").optional(),
 })
 
 type RecipeFormData = z.infer<typeof recipeSchema>
