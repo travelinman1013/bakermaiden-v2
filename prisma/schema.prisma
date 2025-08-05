@@ -1,5 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// File: prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -10,56 +9,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Recipe model - stores recipe information
 model Recipe {
-  id          String   @id @default(cuid())
-  name        String   @db.VarChar(100)
-  description String?  @db.Text
-  servings    Int?
-  prepTime    String?  @db.VarChar(50) @map("prep_time")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Relationship to recipe ingredients (many-to-many through RecipeIngredient)
-  recipeIngredients RecipeIngredient[]
-
-  @@map("recipes")
-  @@index([name])
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  productionRuns ProductionRun[]
 }
 
-// Ingredient model - stores ingredient inventory information
-model Ingredient {
-  id           String  @id @default(cuid())
-  name         String  @db.VarChar(100)
-  unit         String  @db.VarChar(20) // e.g., "cups", "lbs", "oz", "grams"
-  currentStock Decimal @default(0) @map("current_stock") @db.Decimal(10, 3)
-  minStock     Decimal? @map("min_stock") @db.Decimal(10, 3)
-  maxStock     Decimal? @map("max_stock") @db.Decimal(10, 3)
-  unitCost     Decimal? @map("unit_cost") @db.Decimal(10, 2)
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  // Relationship to recipe ingredients (many-to-many through RecipeIngredient)
-  recipeIngredients RecipeIngredient[]
-
-  @@map("ingredients")
-  @@index([name])
+model ProductionRun {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  dailyLot  String
+  cakeLot   String
+  icingLot  String
+  recipeId  Int
+  recipe    Recipe   @relation(fields: [recipeId], references: [id])
+  pallets   Pallet[]
 }
 
-// Join table for many-to-many relationship between recipes and ingredients
-model RecipeIngredient {
-  id           String     @id @default(cuid())
-  recipeId     String     @map("recipe_id")
-  ingredientId String     @map("ingredient_id")
-  quantity     Decimal    @db.Decimal(10, 3)
-  createdAt    DateTime   @default(now()) @map("created_at")
-
-  // Relations
-  recipe     Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
-
-  @@map("recipe_ingredients")
-  @@unique([recipeId, ingredientId]) // Prevent duplicate ingredient entries per recipe
-  @@index([recipeId])
-  @@index([ingredientId])
+model Pallet {
+  id              Int           @id @default(autoincrement())
+  createdAt       DateTime      @default(now())
+  productionRunId Int
+  productionRun   ProductionRun @relation(fields: [productionRunId], references: [id], onDelete: Cascade)
 }
