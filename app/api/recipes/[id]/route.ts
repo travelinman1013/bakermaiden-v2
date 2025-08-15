@@ -10,22 +10,23 @@ export async function GET(
 ) {
   try {
     // Validate recipe ID
-    const { id } = recipeIdSchema.parse({ id: params.id })
+    const { id: idString } = recipeIdSchema.parse({ id: params.id })
+    const id = parseInt(idString, 10)
+    
+    if (isNaN(id)) {
+      return NextResponse.json(
+        {
+          error: 'Invalid recipe ID',
+          code: 'INVALID_ID'
+        },
+        { status: 400 }
+      )
+    }
 
     const recipe = await withDatabaseErrorHandling(
       async () => {
         return await prisma.recipe.findUnique({
-          where: { id },
-          include: {
-            recipeIngredients: {
-              include: {
-                ingredient: true
-              },
-              orderBy: {
-                createdAt: 'asc'
-              }
-            }
-          }
+          where: { id }
         })
       },
       'fetching recipe'
@@ -46,20 +47,12 @@ export async function GET(
         id: recipe.id,
         name: recipe.name,
         description: recipe.description,
-        servings: recipe.servings,
-        prepTime: recipe.prepTime,
+        version: recipe.version,
+        isActive: recipe.isActive,
+        yieldQuantity: recipe.yieldQuantity ? Number(recipe.yieldQuantity) : null,
+        yieldUnit: recipe.yieldUnit,
         createdAt: recipe.createdAt,
-        updatedAt: recipe.updatedAt,
-        ingredients: recipe.recipeIngredients.map(ri => ({
-          id: ri.id,
-          quantity: Number(ri.quantity),
-          ingredient: {
-            id: ri.ingredient.id,
-            name: ri.ingredient.name,
-            unit: ri.ingredient.unit,
-            currentStock: Number(ri.ingredient.currentStock)
-          }
-        }))
+        updatedAt: recipe.updatedAt
       }
     })
   } catch (error) {
@@ -103,7 +96,18 @@ export async function PUT(
 ) {
   try {
     // Validate recipe ID
-    const { id } = recipeIdSchema.parse({ id: params.id })
+    const { id: idString } = recipeIdSchema.parse({ id: params.id })
+    const id = parseInt(idString, 10)
+    
+    if (isNaN(id)) {
+      return NextResponse.json(
+        {
+          error: 'Invalid recipe ID',
+          code: 'INVALID_ID'
+        },
+        { status: 400 }
+      )
+    }
     
     const body = await request.json()
     
@@ -130,8 +134,10 @@ export async function PUT(
             ...(validatedData.description !== undefined && { 
               description: validatedData.description 
             }),
-            ...(validatedData.servings !== undefined && { servings: validatedData.servings }),
-            ...(validatedData.prepTime !== undefined && { prepTime: validatedData.prepTime })
+            ...(validatedData.version !== undefined && { version: validatedData.version }),
+            ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),
+            ...(validatedData.yieldQuantity !== undefined && { yieldQuantity: validatedData.yieldQuantity }),
+            ...(validatedData.yieldUnit !== undefined && { yieldUnit: validatedData.yieldUnit })
           }
         })
       },
@@ -143,8 +149,10 @@ export async function PUT(
         id: recipe.id,
         name: recipe.name,
         description: recipe.description,
-        servings: recipe.servings,
-        prepTime: recipe.prepTime,
+        version: recipe.version,
+        isActive: recipe.isActive,
+        yieldQuantity: recipe.yieldQuantity ? Number(recipe.yieldQuantity) : null,
+        yieldUnit: recipe.yieldUnit,
         createdAt: recipe.createdAt,
         updatedAt: recipe.updatedAt
       }
@@ -191,7 +199,18 @@ export async function DELETE(
 ) {
   try {
     // Validate recipe ID
-    const { id } = recipeIdSchema.parse({ id: params.id })
+    const { id: idString } = recipeIdSchema.parse({ id: params.id })
+    const id = parseInt(idString, 10)
+    
+    if (isNaN(id)) {
+      return NextResponse.json(
+        {
+          error: 'Invalid recipe ID',
+          code: 'INVALID_ID'
+        },
+        { status: 400 }
+      )
+    }
 
     await withDatabaseErrorHandling(
       async () => {

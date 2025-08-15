@@ -11,27 +11,14 @@ export async function GET(
   try {
     // Validate ingredient ID
     const { id } = ingredientIdSchema.parse({ id: params.id })
+    const ingredientId = parseInt(id, 10)
 
     const ingredient = await withDatabaseErrorHandling(
       async () => {
         return await prisma.ingredient.findUnique({
-          where: { id },
+          where: { id: ingredientId },
           include: {
-            recipeIngredients: {
-              include: {
-                recipe: {
-                  select: {
-                    id: true,
-                    name: true
-                  }
-                }
-              },
-              orderBy: {
-                recipe: {
-                  name: 'asc'
-                }
-              }
-            }
+            IngredientLot: true
           }
         })
       },
@@ -52,18 +39,16 @@ export async function GET(
       ingredient: {
         id: ingredient.id,
         name: ingredient.name,
-        unit: ingredient.unit,
-        currentStock: Number(ingredient.currentStock),
-        minStock: ingredient.minStock ? Number(ingredient.minStock) : null,
-        maxStock: ingredient.maxStock ? Number(ingredient.maxStock) : null,
-        unitCost: ingredient.unitCost ? Number(ingredient.unitCost) : null,
+        supplierName: ingredient.supplierName,
+        supplierCode: ingredient.supplierCode,
+        storageType: ingredient.storageType,
+        shelfLifeDays: ingredient.shelfLifeDays,
+        allergens: ingredient.allergens,
+        certifications: ingredient.certifications,
+        isActive: ingredient.isActive,
         createdAt: ingredient.createdAt,
         updatedAt: ingredient.updatedAt,
-        usedInRecipes: ingredient.recipeIngredients.map(ri => ({
-          recipeId: ri.recipe.id,
-          recipeName: ri.recipe.name,
-          quantity: Number(ri.quantity)
-        }))
+        lots: ingredient.IngredientLot
       }
     })
   } catch (error) {
@@ -108,6 +93,7 @@ export async function PUT(
   try {
     // Validate ingredient ID
     const { id } = ingredientIdSchema.parse({ id: params.id })
+    const ingredientId = parseInt(id, 10)
     
     const body = await request.json()
     
@@ -119,7 +105,7 @@ export async function PUT(
       async () => {
         // First check if ingredient exists
         const existingIngredient = await prisma.ingredient.findUnique({
-          where: { id }
+          where: { id: ingredientId }
         })
 
         if (!existingIngredient) {
@@ -128,16 +114,12 @@ export async function PUT(
 
         // Update the ingredient
         return await prisma.ingredient.update({
-          where: { id },
+          where: { id: ingredientId },
           data: {
             ...(validatedData.name && { name: validatedData.name }),
-            ...(validatedData.unit && { unit: validatedData.unit }),
-            ...(validatedData.currentStock !== undefined && { 
-              currentStock: validatedData.currentStock 
-            }),
-            ...(validatedData.minStock !== undefined && { minStock: validatedData.minStock }),
-            ...(validatedData.maxStock !== undefined && { maxStock: validatedData.maxStock }),
-            ...(validatedData.unitCost !== undefined && { unitCost: validatedData.unitCost })
+            ...(validatedData.description !== undefined && { description: validatedData.description }),
+            ...(validatedData.supplierCode !== undefined && { supplierCode: validatedData.supplierCode }),
+            updatedAt: new Date()
           }
         })
       },
@@ -148,11 +130,13 @@ export async function PUT(
       ingredient: {
         id: ingredient.id,
         name: ingredient.name,
-        unit: ingredient.unit,
-        currentStock: Number(ingredient.currentStock),
-        minStock: ingredient.minStock ? Number(ingredient.minStock) : null,
-        maxStock: ingredient.maxStock ? Number(ingredient.maxStock) : null,
-        unitCost: ingredient.unitCost ? Number(ingredient.unitCost) : null,
+        supplierName: ingredient.supplierName,
+        supplierCode: ingredient.supplierCode,
+        storageType: ingredient.storageType,
+        shelfLifeDays: ingredient.shelfLifeDays,
+        allergens: ingredient.allergens,
+        certifications: ingredient.certifications,
+        isActive: ingredient.isActive,
         createdAt: ingredient.createdAt,
         updatedAt: ingredient.updatedAt
       }
@@ -200,16 +184,17 @@ export async function DELETE(
   try {
     // Validate ingredient ID
     const { id } = ingredientIdSchema.parse({ id: params.id })
+    const ingredientId = parseInt(id, 10)
 
     const result = await withDatabaseErrorHandling(
       async () => {
         // First check if ingredient exists and count recipe usage
         const existingIngredient = await prisma.ingredient.findUnique({
-          where: { id },
+          where: { id: ingredientId },
           include: {
             _count: {
               select: {
-                recipeIngredients: true
+                IngredientLot: true
               }
             }
           }
@@ -219,16 +204,16 @@ export async function DELETE(
           throw new DatabaseError('Ingredient not found')
         }
 
-        // Check if ingredient is used in any recipes
-        if (existingIngredient._count.recipeIngredients > 0) {
+        // Check if ingredient has any lots
+        if (existingIngredient._count.IngredientLot > 0) {
           throw new DatabaseError(
-            `Cannot delete ingredient "${existingIngredient.name}" because it is used in ${existingIngredient._count.recipeIngredients} recipe(s). Remove it from all recipes first.`
+            `Cannot delete ingredient "${existingIngredient.name}" because it has ${existingIngredient._count.IngredientLot} lot(s). Remove all lots first.`
           )
         }
 
         // Delete the ingredient
         await prisma.ingredient.delete({
-          where: { id }
+          where: { id: ingredientId }
         })
 
         return { name: existingIngredient.name }

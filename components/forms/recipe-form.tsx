@@ -12,8 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 const recipeSchema = z.object({
   name: z.string().min(1, "Recipe name is required").max(100, "Name must be less than 100 characters"),
   description: z.string().max(2000, "Description must be less than 2000 characters").optional(),
-  servings: z.coerce.number().min(1, "Servings must be at least 1").max(1000, "Servings must be less than 1000").optional(),
-  prepTime: z.string().max(50, "Prep time must be 50 characters or less").optional(),
+  version: z.string().max(10, "Version must be 10 characters or less").default("1.0").optional(),
+  isActive: z.boolean().default(true),
 })
 
 type RecipeFormData = z.infer<typeof recipeSchema>
@@ -87,31 +87,31 @@ export function RecipeForm({ open, onOpenChange, onSubmit, initialData, isEditin
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="servings">Servings</Label>
-              <Input
-                id="servings"
-                type="number"
-                {...register("servings")}
-                placeholder="12"
-              />
-              {errors.servings && (
-                <p className="text-sm text-destructive">{errors.servings.message}</p>
-              )}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="version">Version</Label>
+            <Input
+              id="version"
+              {...register("version")}
+              placeholder="1.0"
+            />
+            {errors.version && (
+              <p className="text-sm text-destructive">{errors.version.message}</p>
+            )}
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="prepTime">Prep Time</Label>
-              <Input
-                id="prepTime"
-                {...register("prepTime")}
-                placeholder="e.g., 2 hours"
+          <div className="space-y-2">
+            <Label htmlFor="isActive" className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="isActive"
+                {...register("isActive")}
+                className="rounded border-gray-300"
               />
-              {errors.prepTime && (
-                <p className="text-sm text-destructive">{errors.prepTime.message}</p>
-              )}
-            </div>
+              <span>Active Recipe</span>
+            </Label>
+            {errors.isActive && (
+              <p className="text-sm text-destructive">{errors.isActive.message}</p>
+            )}
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">

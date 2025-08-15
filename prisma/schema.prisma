@@ -1,7 +1,6 @@
-// File: prisma/schema.prisma
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["metrics"]
 }
 
 datasource db {
@@ -9,26 +8,192 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Recipe {
-  id             Int              @id @default(autoincrement())
-  name           String           @unique
-  productionRuns ProductionRun[]
+model AuditLog {
+  id          Int         @id @default(autoincrement())
+  entityType  AuditEntity
+  entityId    Int
+  action      AuditAction
+  changes     Json?
+  reason      String?
+  performedBy Int?
+  performedAt DateTime    @default(now())
+  ipAddress   String?
+  userAgent   String?
+  User        User?       @relation(fields: [performedBy], references: [id], onUpdate: NoAction)
+
+  @@index([entityType, entityId])
+  @@index([performedAt])
 }
 
-model ProductionRun {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  dailyLot  String
-  cakeLot   String
-  icingLot  String
-  recipeId  Int
-  recipe    Recipe   @relation(fields: [recipeId], references: [id])
-  pallets   Pallet[]
+model BatchIngredient {
+  id              Int           @id @default(autoincrement())
+  productionRunId Int
+  ingredientLotId Int
+  quantityUsed    Decimal       @db.Decimal(10, 3)
+  addedAt         DateTime      @default(now())
+  addedBy         Int?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  User            User?         @relation(fields: [addedBy], references: [id], onUpdate: NoAction)
+  IngredientLot   IngredientLot @relation(fields: [ingredientLotId], references: [id], onUpdate: NoAction)
+  ProductionRun   ProductionRun @relation(fields: [productionRunId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
+model Ingredient {
+  id             Int             @id @default(autoincrement())
+  name           String          @unique
+  supplierName   String
+  supplierCode   String?
+  storageType    StorageType     @default(dry)
+  shelfLifeDays  Int?
+  allergens      AllergenType[]
+  certifications String[]
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now())
+  IngredientLot  IngredientLot[]
+}
+
+model IngredientLot {
+  id                Int               @id @default(autoincrement())
+  ingredientId      Int
+  supplierLotCode   String
+  internalLotCode   String            @unique
+  receivedDate      DateTime
+  expirationDate    DateTime?
+  manufactureDate   DateTime?
+  quantityReceived  Decimal           @db.Decimal(10, 3)
+  quantityRemaining Decimal           @db.Decimal(10, 3)
+  qualityStatus     QualityStatus     @default(pending)
+  testResults       Json?
+  storageLocation   String?
+  storageConditions String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @default(now())
+  BatchIngredient   BatchIngredient[]
+  Ingredient        Ingredient        @relation(fields: [ingredientId], references: [id], onUpdate: NoAction)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model Pallet {
   id              Int           @id @default(autoincrement())
   createdAt       DateTime      @default(now())
   productionRunId Int
-  productionRun   ProductionRun @relation(fields: [productionRunId], references: [id], onDelete: Cascade)
+  palletCode      String?
+  quantityPacked  Decimal?      @db.Decimal(10, 3)
+  packingDate     DateTime?
+  expirationDate  DateTime?
+  shippingStatus  String?       @default("pending")
+  location        String?       @default("warehouse")
+  notes           String?
+  updatedAt       DateTime?     @default(now())
+  packedBy        Int?
+  User            User?         @relation(fields: [packedBy], references: [id], onUpdate: NoAction)
+  ProductionRun   ProductionRun @relation(fields: [productionRunId], references: [id], onDelete: Cascade)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model ProductionRun {
+  id                                           Int               @id @default(autoincrement())
+  createdAt                                    DateTime          @default(now())
+  dailyLot                                     String
+  cakeLot                                      String
+  icingLot                                     String
+  recipeId                                     Int
+  plannedQuantity                              Decimal?          @db.Decimal(10, 3)
+  actualQuantity                               Decimal?          @db.Decimal(10, 3)
+  startTime                                    DateTime?
+  endTime                                      DateTime?
+  primaryOperatorId                            Int?
+  assistantOperatorId                          Int?
+  inspectorId                                  Int?
+  equipmentStation                             String?
+  qualityStatus                                String?           @default("pending")
+  temperature                                  Decimal?          @db.Decimal(5, 2)
+  humidity                                     Decimal?          @db.Decimal(5, 2)
+  notes                                        String?
+  updatedAt                                    DateTime?         @default(now())
+  BatchIngredient                              BatchIngredient[]
+  Pallet                                       Pallet[]
+  User_ProductionRun_assistantOperatorIdToUser User?             @relation("ProductionRun_assistantOperatorIdToUser", fields: [assistantOperatorId], references: [id], onUpdate: NoAction)
+  User_ProductionRun_inspectorIdToUser         User?             @relation("ProductionRun_inspectorIdToUser", fields: [inspectorId], references: [id], onUpdate: NoAction)
+  User_ProductionRun_primaryOperatorIdToUser   User?             @relation("ProductionRun_primaryOperatorIdToUser", fields: [primaryOperatorId], references: [id], onUpdate: NoAction)
+  Recipe                                       Recipe            @relation(fields: [recipeId], references: [id])
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Recipe {
+  id                          Int             @id @default(autoincrement())
+  name                        String          @unique
+  description                 String?
+  version                     String?         @default("1.0")
+  isActive                    Boolean?        @default(true)
+  yieldQuantity               Decimal?        @db.Decimal(10, 3)
+  yieldUnit                   String?         @default("units")
+  createdAt                   DateTime?       @default(now())
+  updatedAt                   DateTime?       @default(now())
+  createdBy                   Int?
+  updatedBy                   Int?
+  ProductionRun               ProductionRun[]
+  User_Recipe_createdByToUser User?           @relation("Recipe_createdByToUser", fields: [createdBy], references: [id], onUpdate: NoAction)
+  User_Recipe_updatedByToUser User?           @relation("Recipe_updatedByToUser", fields: [updatedBy], references: [id], onUpdate: NoAction)
+}
+
+model User {
+  id                                                    Int               @id @default(autoincrement())
+  email                                                 String            @unique
+  name                                                  String
+  role                                                  String            @default("operator")
+  isActive                                              Boolean           @default(true)
+  createdAt                                             DateTime          @default(now())
+  updatedAt                                             DateTime          @default(now())
+  AuditLog                                              AuditLog[]
+  BatchIngredient                                       BatchIngredient[]
+  Pallet                                                Pallet[]
+  ProductionRun_ProductionRun_assistantOperatorIdToUser ProductionRun[]   @relation("ProductionRun_assistantOperatorIdToUser")
+  ProductionRun_ProductionRun_inspectorIdToUser         ProductionRun[]   @relation("ProductionRun_inspectorIdToUser")
+  ProductionRun_ProductionRun_primaryOperatorIdToUser   ProductionRun[]   @relation("ProductionRun_primaryOperatorIdToUser")
+  Recipe_Recipe_createdByToUser                         Recipe[]          @relation("Recipe_createdByToUser")
+  Recipe_Recipe_updatedByToUser                         Recipe[]          @relation("Recipe_updatedByToUser")
+}
+
+enum AllergenType {
+  milk
+  eggs
+  wheat
+  soy
+  nuts
+  peanuts
+  sesame
+  fish
+  shellfish
+}
+
+enum AuditAction {
+  create
+  update
+  delete
+  archive
+}
+
+enum AuditEntity {
+  recipe
+  production_run
+  ingredient
+  ingredient_lot
+  pallet
+  user
+}
+
+enum QualityStatus {
+  pending
+  passed
+  failed
+  quarantined
+}
+
+enum StorageType {
+  dry
+  refrigerated
+  frozen
 }

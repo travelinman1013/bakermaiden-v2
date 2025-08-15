@@ -20,8 +20,8 @@ export default async function RunDetailsPage({
   const run = await prisma.productionRun.findUnique({
     where: { id: runId },
     include: {
-      recipe: true,
-      _count: { select: { pallets: true } },
+      Recipe: true,
+      _count: { select: { Pallet: true } },
     },
   });
 
@@ -36,7 +36,7 @@ export default async function RunDetailsPage({
     <div className="container mx-auto p-4">
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle className="text-2xl">{run.recipe.name}</CardTitle>
+          <CardTitle className="text-2xl">{run.Recipe.name}</CardTitle>
           <CardDescription>Daily Lot: {run.dailyLot}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -50,7 +50,7 @@ export default async function RunDetailsPage({
           </div>
           <div className="p-6 border rounded-lg text-center">
             <p className="text-sm text-muted-foreground">Pallets Produced</p>
-            <p className="text-6xl font-bold">{run._count.pallets}</p>
+            <p className="text-6xl font-bold">{run._count.Pallet}</p>
           </div>
           <form action={addPalletAction}>
             <Button size="lg" className="w-full h-16 text-xl">

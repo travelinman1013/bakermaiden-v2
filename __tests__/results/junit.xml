@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="15" failures="12" errors="0" time="0.97">
+  <testsuite name="/api/production-runs" errors="0" failures="12" skipped="0" timestamp="2025-08-15T14:20:08" time="0.934" tests="15">
+    <testcase classname="/api/production-runs GET /api/production-runs should return production runs with pagination" name="/api/production-runs GET /api/production-runs should return production runs with pagination" time="0.023">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+Expected: {&quot;include&quot;: Any&lt;Object&gt;, &quot;orderBy&quot;: {&quot;createdAt&quot;: &quot;desc&quot;}, &quot;skip&quot;: 0, &quot;take&quot;: 20, &quot;where&quot;: {}}
+
+Number of calls: 0
+    at /Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:65:49
+    at step (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:47:23)
+    at Object.next (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:28:53)
+    at fulfilled (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:19:58)</failure>
+    </testcase>
+    <testcase classname="/api/production-runs GET /api/production-runs should handle search filtering" name="/api/production-runs GET /api/production-runs should handle search filtering" time="0.004">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+Expected: {&quot;include&quot;: Any&lt;Object&gt;, &quot;orderBy&quot;: {&quot;createdAt&quot;: &quot;desc&quot;}, &quot;skip&quot;: 0, &quot;take&quot;: 20, &quot;where&quot;: {&quot;OR&quot;: [{&quot;batchNumber&quot;: {&quot;contains&quot;: &quot;BATCH001&quot;, &quot;mode&quot;: &quot;insensitive&quot;}}, {&quot;dailyLot&quot;: {&quot;contains&quot;: &quot;BATCH001&quot;, &quot;mode&quot;: &quot;insensitive&quot;}}, {&quot;cakeLot&quot;: {&quot;contains&quot;: &quot;BATCH001&quot;, &quot;mode&quot;: &quot;insensitive&quot;}}, {&quot;icingLot&quot;: {&quot;contains&quot;: &quot;BATCH001&quot;, &quot;mode&quot;: &quot;insensitive&quot;}}, {&quot;primaryOperator&quot;: {&quot;contains&quot;: &quot;BATCH001&quot;, &quot;mode&quot;: &quot;insensitive&quot;}}, {&quot;productionNotes&quot;: {&quot;contains&quot;: &quot;BATCH001&quot;, &quot;mode&quot;: &quot;insensitive&quot;}}]}}
+
+Number of calls: 0
+    at /Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:85:49
+    at step (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:47:23)
+    at Object.next (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:28:53)
+    at fulfilled (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:19:58)</failure>
+    </testcase>
+    <testcase classname="/api/production-runs GET /api/production-runs should handle invalid pagination parameters" name="/api/production-runs GET /api/production-runs should handle invalid pagination parameters" time="0.004">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 400
+Received: 500
+    at /Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:112:31
+    at step (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:47:23)
+    at Object.next (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:28:53)
+    at fulfilled (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:19:58)</failure>
+    </testcase>
+    <testcase classname="/api/production-runs POST /api/production-runs should create a new production run" name="/api/production-runs POST /api/production-runs should create a new production run" time="0.005">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 201
+Received: 500
+    at /Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:158:31
+    at step (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:47:23)
+    at Object.next (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:28:53)
+    at fulfilled (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:19:58)</failure>
+    </testcase>
+    <testcase classname="/api/production-runs POST /api/production-runs should reject duplicate batch numbers" name="/api/production-runs POST /api/production-runs should reject duplicate batch numbers" time="0.003">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 409
+Received: 500
+    at /Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:201:31
+    at step (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:47:23)
+    at Object.next (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:28:53)
+    at fulfilled (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:19:58)</failure>
+    </testcase>
+    <testcase classname="/api/production-runs POST /api/production-runs should reject invalid request body" name="/api/production-runs POST /api/production-runs should reject invalid request body" time="0.002">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 400
+Received: 500
+    at /Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:217:31
+    at step (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:47:23)
+    at Object.next (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:28:53)
+    at fulfilled (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:19:58)</failure>
+    </testcase>
+    <testcase classname="/api/production-runs GET /api/production-runs/[id] should return production run details" name="/api/production-runs GET /api/production-runs/[id] should return production run details" time="0.001">
+    </testcase>
+    <testcase classname="/api/production-runs GET /api/production-runs/[id] should return 404 for non-existent production run" name="/api/production-runs GET /api/production-runs/[id] should return 404 for non-existent production run" time="0">
+    </testcase>
+    <testcase classname="/api/production-runs GET /api/production-runs/[id] should handle invalid ID format" name="/api/production-runs GET /api/production-runs/[id] should handle invalid ID format" time="0.002">
+    </testcase>
+    <testcase classname="/api/production-runs PUT /api/production-runs/[id] should update production run" name="/api/production-runs PUT /api/production-runs/[id] should update production run" time="0.006">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 200
+Received: 500
+    at /Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:303:31
+    at step (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:47:23)
+    at Object.next (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:28:53)
+    at fulfilled (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:19:58)</failure>
+    </testcase>
+    <testcase classname="/api/production-runs PUT /api/production-runs/[id] should prevent updates to completed batches" name="/api/production-runs PUT /api/production-runs/[id] should prevent updates to completed batches" time="0.01">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 403
+Received: 500
+    at /Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:327:31
+    at step (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:47:23)
+    at Object.next (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:28:53)
+    at fulfilled (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:19:58)</failure>
+    </testcase>
+    <testcase classname="/api/production-runs PUT /api/production-runs/[id] should calculate duration from start and end times" name="/api/production-runs PUT /api/production-runs/[id] should calculate duration from start and end times" time="0.003">
+      <failure>Error: expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+Expected: {&quot;data&quot;: ObjectContaining {&quot;durationMinutes&quot;: 240}, &quot;include&quot;: Any&lt;Object&gt;, &quot;where&quot;: {&quot;id&quot;: 1}}
+
+Number of calls: 0
+    at /Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:358:47
+    at step (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:47:23)
+    at Object.next (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:28:53)
+    at fulfilled (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:19:58)</failure>
+    </testcase>
+    <testcase classname="/api/production-runs DELETE /api/production-runs/[id] should archive production run by marking as FAILED" name="/api/production-runs DELETE /api/production-runs/[id] should archive production run by marking as FAILED" time="0.001">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 200
+Received: 500
+    at /Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:395:31
+    at step (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:47:23)
+    at Object.next (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:28:53)
+    at fulfilled (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:19:58)</failure>
+    </testcase>
+    <testcase classname="/api/production-runs DELETE /api/production-runs/[id] should prevent deletion of completed production runs" name="/api/production-runs DELETE /api/production-runs/[id] should prevent deletion of completed production runs" time="0">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 403
+Received: 500
+    at /Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:424:31
+    at step (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:47:23)
+    at Object.next (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:28:53)
+    at fulfilled (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:19:58)</failure>
+    </testcase>
+    <testcase classname="/api/production-runs DELETE /api/production-runs/[id] should prevent deletion when shipped pallets exist" name="/api/production-runs DELETE /api/production-runs/[id] should prevent deletion when shipped pallets exist" time="0.001">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 403
+Received: 500
+    at /Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:448:31
+    at step (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:47:23)
+    at Object.next (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:28:53)
+    at fulfilled (/Users/maxwell/Desktop/LETSGO/Projects/bakermaiden-v2/__tests__/api/production-runs.test.ts:19:58)</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

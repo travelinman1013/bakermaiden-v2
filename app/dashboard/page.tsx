@@ -70,26 +70,26 @@ export default function DashboardPage() {
       const ingredientsData = await ingredientsResponse.json()
       
       // Calculate low stock items
-      const lowStockCount = ingredientsData.ingredients.filter((ingredient: any) => 
-        getStockStatus(ingredient.currentStock, ingredient.minStock) === "low"
+      const lowStockCount = (ingredientsData.data || []).filter((ingredient: any) => 
+        getStockStatus(ingredient.currentStock, ingredient.minimumStock) === "low"
       ).length
       
       // Update stats
       setStats({
-        totalRecipes: recipesData.recipes.length,
-        totalIngredients: ingredientsData.ingredients.length,
+        totalRecipes: (recipesData.data || []).length,
+        totalIngredients: (ingredientsData.data || []).length,
         lowStockItems: lowStockCount
       })
       
       // Combine and sort recent items
-      const recentRecipes = recipesData.recipes.slice(0, 3).map((recipe: any) => ({
+      const recentRecipes = (recipesData.data || []).slice(0, 3).map((recipe: any) => ({
         id: recipe.id,
         name: recipe.name,
         type: 'recipe' as const,
         createdAt: recipe.createdAt
       }))
       
-      const recentIngredients = ingredientsData.ingredients.slice(0, 3).map((ingredient: any) => ({
+      const recentIngredients = (ingredientsData.data || []).slice(0, 3).map((ingredient: any) => ({
         id: ingredient.id,
         name: ingredient.name,
         type: 'ingredient' as const,

@@ -8,16 +8,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast"
 import { RecipeForm } from "@/components/forms/recipe-form"
 
-// Recipe type definition
+// Recipe type definition (aligned with backend API response)
 type Recipe = {
-  id: string
+  id: number
   name: string
   description: string | null
-  servings: number | null
-  prepTime: string | null
+  version: string | null
+  isActive: boolean
   createdAt: string
   updatedAt: string
-  ingredientCount: number
+  createdBy: string | null
+  updatedBy: string | null
+  // Computed fields from API joins
+  totalProductionRuns?: number
+  recentProductionRuns?: any[]
+  lastUsed?: string | null
 }
 
 export default function RecipesPage() {
@@ -37,7 +42,7 @@ export default function RecipesPage() {
         throw new Error('Failed to fetch recipes')
       }
       const data = await response.json()
-      setRecipes(data.recipes)
+      setRecipes(data.data || [])
     } catch (error) {
       console.error('Error fetching recipes:', error)
       toast({
@@ -72,10 +77,12 @@ export default function RecipesPage() {
 
       const result = await response.json()
       
-      // Add the new recipe to the list
+      // Add the new recipe to the list with default computed fields
       setRecipes(prev => [{
         ...result.recipe,
-        ingredientCount: 0
+        totalProductionRuns: 0,
+        recentProductionRuns: [],
+        lastUsed: null
       }, ...prev])
       
       toast({
@@ -114,10 +121,15 @@ export default function RecipesPage() {
 
       const result = await response.json()
       
-      // Update the recipe in the list
+      // Update the recipe in the list while preserving computed fields
       setRecipes(prev => prev.map(recipe => 
         recipe.id === editingRecipe.id 
-          ? { ...result.recipe, ingredientCount: recipe.ingredientCount }
+          ? { 
+              ...result.recipe, 
+              totalProductionRuns: recipe.totalProductionRuns || 0, 
+              recentProductionRuns: recipe.recentProductionRuns || [], 
+              lastUsed: recipe.lastUsed || null 
+            }
           : recipe
       ))
       
@@ -139,7 +151,7 @@ export default function RecipesPage() {
     }
   }
 
-  const handleDeleteRecipe = async (recipeId: string) => {
+  const handleDeleteRecipe = async (recipeId: number) => {
     if (!confirm('Are you sure you want to delete this recipe?')) {
       return
     }
@@ -261,20 +273,21 @@ export default function RecipesPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {(recipe.servings || recipe.prepTime) && (
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      {recipe.servings && (
-                        <div className="flex items-center space-x-1">
-                          <Users className="h-4 w-4" />
-                          <span>{recipe.servings} servings</span>
-                        </div>
-                      )}
-                      {recipe.prepTime && <div>{recipe.prepTime}</div>}
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <div className="flex items-center space-x-1">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        recipe.isActive 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {recipe.isActive ? 'Active' : 'Inactive'}
+                      </span>
                     </div>
-                  )}
+                    {recipe.version && <div>v{recipe.version}</div>}
+                  </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">
-                      {recipe.ingredientCount} ingredients
+                      {recipe.totalProductionRuns || 0} production runs
                     </span>
                     <span className="text-xs text-gray-400">
                       Created {new Date(recipe.createdAt).toLocaleDateString()}
@@ -317,8 +330,8 @@ export default function RecipesPage() {
         initialData={editingRecipe ? {
           name: editingRecipe.name,
           description: editingRecipe.description || undefined,
-          servings: editingRecipe.servings || undefined,
-          prepTime: editingRecipe.prepTime || undefined,
+          version: editingRecipe.version || undefined,
+          isActive: editingRecipe.isActive
         } : undefined}
         isEditing={!!editingRecipe}
       />
