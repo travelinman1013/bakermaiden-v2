@@ -50,10 +50,10 @@ export async function GET(
 
     // Calculate additional metrics for the response
     const metrics = {
-      ingredientsUsed: productionRun.BatchIngredient.length,
-      palletsProduced: productionRun.Pallet.length,
-      shippedPallets: productionRun.Pallet.filter(p => p.shippingStatus === 'shipped').length,
-      pendingPallets: productionRun.Pallet.filter(p => p.shippingStatus === 'pending').length,
+      ingredientsUsed: productionRun.BatchIngredient?.length || 0,
+      palletsProduced: productionRun.Pallet?.length || 0,
+      shippedPallets: productionRun.Pallet?.filter(p => p.shippingStatus === 'shipped').length || 0,
+      pendingPallets: productionRun.Pallet?.filter(p => p.shippingStatus === 'pending').length || 0,
       yieldPercentage: productionRun.plannedQuantity && productionRun.actualQuantity
         ? (Number(productionRun.actualQuantity) / Number(productionRun.plannedQuantity) * 100).toFixed(2)
         : null,
@@ -65,7 +65,7 @@ export async function GET(
     // Enhanced traceability information
     const traceability = {
       upstreamTraceability: {
-        ingredients: productionRun.BatchIngredient.map(bi => ({
+        ingredients: productionRun.BatchIngredient?.map(bi => ({
           ingredientName: bi.IngredientLot.Ingredient.name,
           supplierName: bi.IngredientLot.Ingredient.supplierName,
           supplierCode: bi.IngredientLot.Ingredient.supplierCode,
@@ -76,10 +76,10 @@ export async function GET(
           expirationDate: bi.IngredientLot.expirationDate,
           qualityStatus: bi.IngredientLot.qualityStatus,
           allergens: bi.IngredientLot.Ingredient.allergens
-        }))
+        })) || []
       },
       downstreamTraceability: {
-        pallets: productionRun.Pallet.map(p => ({
+        pallets: productionRun.Pallet?.map(p => ({
           palletCode: p.palletCode || p.id.toString(),
           quantityPacked: p.quantityPacked,
           packingDate: p.packingDate,
@@ -88,7 +88,7 @@ export async function GET(
           location: p.location,
           notes: p.notes,
           packedBy: p.packedBy
-        }))
+        })) || []
       }
     }
 
@@ -102,8 +102,8 @@ export async function GET(
         timestamp: new Date().toISOString(),
         dataCompleteness: {
           hasRecipe: !!productionRun.Recipe,
-          hasIngredients: productionRun.BatchIngredient.length > 0,
-          hasPallets: productionRun.Pallet.length > 0,
+          hasIngredients: (productionRun.BatchIngredient?.length || 0) > 0,
+          hasPallets: (productionRun.Pallet?.length || 0) > 0,
           hasStartTime: !!productionRun.startTime,
           hasEndTime: !!productionRun.endTime
         }

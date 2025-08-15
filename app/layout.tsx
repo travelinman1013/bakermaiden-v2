@@ -1,11 +1,10 @@
-import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Navbar } from "@/components/layout/navbar"
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "BakerMaiden - Bakery Management System",
   description: "Professional bakery management system for recipes and inventory",
 }

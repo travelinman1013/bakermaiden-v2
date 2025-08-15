@@ -11,7 +11,7 @@ import { TraceabilityLookup } from '@/components/forms/traceability-lookup';
 import { PrintableBatchSheet } from '@/components/forms/printable-batch-sheet';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { ErrorBoundary, SimpleErrorBoundary } from '@/components/ui/error-boundary';
+import { ErrorBoundary, ProductionTableErrorFallback } from '@/components/ui/error-boundary';
 import { LoadingCard } from '@/components/ui/loading-spinner';
 
 interface Recipe {
@@ -168,35 +168,35 @@ export default function ProductionPage() {
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-4">
-            <SimpleErrorBoundary message="Failed to load production dashboard">
+            <ErrorBoundary fallback={ProductionTableErrorFallback}>
               <BatchList
                 onViewDetails={handleViewBatchDetails}
                 onCreateNew={() => setActiveTab('create')}
                 onPrintBatchSheet={handlePrintBatchSheet}
               />
-            </SimpleErrorBoundary>
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="create" className="space-y-4">
-            <SimpleErrorBoundary message="Failed to load production run form">
+            <ErrorBoundary fallback={ProductionTableErrorFallback}>
               <ProductionRunForm
                 recipes={recipes}
                 onSubmit={handleCreateProductionRun}
                 onCancel={() => setActiveTab('dashboard')}
                 isSubmitting={isSubmitting}
               />
-            </SimpleErrorBoundary>
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="traceability" className="space-y-4">
-            <SimpleErrorBoundary message="Failed to load traceability lookup">
+            <ErrorBoundary fallback={ProductionTableErrorFallback}>
               <TraceabilityLookup onExport={handleExportTraceability} />
-            </SimpleErrorBoundary>
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="details" className="space-y-4">
             {selectedBatchId ? (
-              <SimpleErrorBoundary message="Failed to load batch details">
+              <ErrorBoundary fallback={ProductionTableErrorFallback}>
                 <BatchDetailView
                   batchId={selectedBatchId}
                   onUpdateStatus={handleUpdateBatch}
@@ -206,7 +206,7 @@ export default function ProductionPage() {
                     setSelectedBatchId(null);
                   }}
                 />
-              </SimpleErrorBoundary>
+              </ErrorBoundary>
             ) : (
               <Card>
                 <CardContent className="flex items-center justify-center py-8">

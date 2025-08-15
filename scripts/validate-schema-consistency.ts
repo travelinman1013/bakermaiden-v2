@@ -139,11 +139,11 @@ class SchemaApiValidator {
       lines.forEach((line, index) => {
         // Look for Prisma queries
         const queryMatches = [
-          ...line.matchAll(/prisma\.(\w+)\.findMany\({([^}]+)}\)/g),
-          ...line.matchAll(/prisma\.(\w+)\.findFirst\({([^}]+)}\)/g),
-          ...line.matchAll(/prisma\.(\w+)\.count\({([^}]+)}\)/g),
-          ...line.matchAll(/where\.(\w+)\s*[=:]/g),
-          ...line.matchAll(/\{\s*(\w+):\s*\{/g)
+          ...Array.from(line.matchAll(/prisma\.(\w+)\.findMany\({([^}]+)}\)/g)),
+          ...Array.from(line.matchAll(/prisma\.(\w+)\.findFirst\({([^}]+)}\)/g)),
+          ...Array.from(line.matchAll(/prisma\.(\w+)\.count\({([^}]+)}\)/g)),
+          ...Array.from(line.matchAll(/where\.(\w+)\s*[=:]/g)),
+          ...Array.from(line.matchAll(/\{\s*(\w+):\s*\{/g))
         ];
         
         for (const match of queryMatches) {
@@ -155,7 +155,7 @@ class SchemaApiValidator {
             model = model.charAt(0).toUpperCase() + model.slice(1);
             // Extract field usage from the query
             const queryContent = match[2] || '';
-            const fieldMatches = queryContent.matchAll(/(\w+):/g);
+            const fieldMatches = Array.from(queryContent.matchAll(/(\w+):/g));
             for (const fieldMatch of fieldMatches) {
               this.apiUsages.push({
                 file: filePath,
@@ -269,7 +269,7 @@ class SchemaApiValidator {
       suggestions.push(...commonMappings[field]);
     }
     
-    return [...new Set(suggestions)].slice(0, 3);
+    return Array.from(new Set(suggestions)).slice(0, 3);
   }
   
   private calculateSimilarity(str1: string, str2: string): number {

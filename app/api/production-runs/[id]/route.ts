@@ -4,6 +4,15 @@ import {
   updateProductionRunSchema,
   type UpdateProductionRunInput
 } from '@/lib/validations'
+import { 
+  transformProductionRunResponse, 
+  validateProductionRunResponse 
+} from '@/lib/data-transforms'
+import type { 
+  ProductionRunWithRelations, 
+  ApiErrorResponse, 
+  ProductionRunDetail 
+} from '@/lib/types'
 
 // GET /api/production-runs/[id] - Get specific production run details
 export async function GET(
@@ -24,7 +33,7 @@ export async function GET(
       )
     }
     
-    const productionRun = await withDatabaseErrorHandling(
+    const rawProductionRun = await withDatabaseErrorHandling(
       async () => prisma.productionRun.findUnique({
         where: { id },
         include: {
@@ -47,18 +56,46 @@ export async function GET(
       `GET /api/production-runs/${id}`
     )
     
-    if (!productionRun) {
-      return NextResponse.json(
-        {
-          error: 'Production run not found',
-          code: 'NOT_FOUND',
-          details: { id }
-        },
-        { status: 404 }
-      )
+    if (!rawProductionRun) {
+      const errorResponse: ApiErrorResponse = {
+        error: 'Production run not found',
+        code: 'NOT_FOUND',
+        details: { id }
+      };
+      return NextResponse.json(errorResponse, { status: 404 })
     }
     
-    return NextResponse.json(productionRun)
+    // Validate and transform the response for frontend consumption
+    if (!validateProductionRunResponse(rawProductionRun)) {
+      console.error('Invalid production run data structure:', rawProductionRun);
+      const errorResponse: ApiErrorResponse = {
+        error: 'Invalid production run data structure',
+        code: 'DATA_STRUCTURE_ERROR',
+        details: { id, missingFields: 'Recipe or array relationships' }
+      };
+      return NextResponse.json(errorResponse, { status: 500 })
+    }
+    
+    try {
+      const transformedData: ProductionRunDetail = transformProductionRunResponse(
+        rawProductionRun as ProductionRunWithRelations
+      );
+      
+      return NextResponse.json(transformedData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+    } catch (transformError) {
+      console.error('Error transforming production run data:', transformError);
+      const errorResponse: ApiErrorResponse = {
+        error: 'Failed to transform production run data',
+        code: 'TRANSFORMATION_ERROR',
+        details: { id, error: transformError instanceof Error ? transformError.message : 'Unknown error' }
+      };
+      return NextResponse.json(errorResponse, { status: 500 })
+    }
     
   } catch (error) {
     console.error(`Error fetching production run ${params.id}:`, error)
@@ -201,13 +238,15 @@ export async function PUT(
     // The database doesn't store a separate durationMinutes field
     
     // Update the production run
-    const updatedRun = await withDatabaseErrorHandling(
+    const rawUpdatedRun = await withDatabaseErrorHandling(
       async () => prisma.productionRun.update({
         where: { id },
         data: updateData,
         include: {
           Recipe: true,
-          Pallet: true,
+          Pallet: {
+            orderBy: { createdAt: 'asc' }
+          },
           BatchIngredient: {
             include: {
               IngredientLot: {
@@ -215,14 +254,45 @@ export async function PUT(
                   Ingredient: true
                 }
               }
-            }
+            },
+            orderBy: { createdAt: 'asc' }
           }
         }
       }),
       `Production run update for ID ${id}`
     )
     
-    return NextResponse.json(updatedRun)
+    // Transform the updated data for consistent response format
+    if (!validateProductionRunResponse(rawUpdatedRun)) {
+      console.error('Invalid updated production run data structure:', rawUpdatedRun);
+      const errorResponse: ApiErrorResponse = {
+        error: 'Invalid updated production run data structure',
+        code: 'UPDATE_DATA_ERROR',
+        details: { id }
+      };
+      return NextResponse.json(errorResponse, { status: 500 })
+    }
+    
+    try {
+      const transformedUpdatedData: ProductionRunDetail = transformProductionRunResponse(
+        rawUpdatedRun as ProductionRunWithRelations
+      );
+      
+      return NextResponse.json(transformedUpdatedData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+    } catch (transformError) {
+      console.error('Error transforming updated production run data:', transformError);
+      const errorResponse: ApiErrorResponse = {
+        error: 'Failed to transform updated production run data',
+        code: 'UPDATE_TRANSFORMATION_ERROR',
+        details: { id, error: transformError instanceof Error ? transformError.message : 'Unknown error' }
+      };
+      return NextResponse.json(errorResponse, { status: 500 })
+    }
     
   } catch (error) {
     console.error(`Error updating production run ${params.id}:`, error)

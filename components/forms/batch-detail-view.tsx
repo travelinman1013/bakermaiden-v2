@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ErrorBoundary, BatchDetailErrorFallback } from '@/components/ui/error-boundary';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -52,7 +53,7 @@ interface ProductionRunDetail {
     name: string;
     description: string | null;
     version: string;
-  };
+  } | null;
   batchIngredients: Array<{
     id: number;
     quantityUsed: number;
@@ -253,15 +254,16 @@ export function BatchDetailView({ batchId, onUpdateStatus, onPrintBatchSheet, on
   }
 
   return (
-    <div className="space-y-6">
+    <ErrorBoundary fallback={BatchDetailErrorFallback}>
+      <div className="space-y-6">
       {/* Header */}
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className="text-2xl">{batch.batchNumber}</CardTitle>
+              <CardTitle className="text-2xl">{batch.batchNumber || 'Untitled Batch'}</CardTitle>
               <CardDescription>
-                {batch.recipe.name} - Version {batch.recipe.version}
+                {batch.recipe?.name || 'Unknown Recipe'} - Version {batch.recipe?.version || 'N/A'}
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -282,14 +284,14 @@ export function BatchDetailView({ batchId, onUpdateStatus, onPrintBatchSheet, on
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <div className="text-sm font-medium text-muted-foreground">Status</div>
-              <Badge className={statusColors[batch.status as keyof typeof statusColors]}>
-                {batch.status.replace('_', ' ')}
+              <Badge className={statusColors[(batch.status || 'PLANNED') as keyof typeof statusColors]}>
+                {(batch.status || 'PLANNED').replace('_', ' ')}
               </Badge>
             </div>
             <div>
               <div className="text-sm font-medium text-muted-foreground">Quality Status</div>
-              <Badge className={qualityStatusColors[batch.qualityStatus as keyof typeof qualityStatusColors]}>
-                {batch.qualityStatus}
+              <Badge className={qualityStatusColors[(batch.qualityStatus || 'PENDING') as keyof typeof qualityStatusColors]}>
+                {batch.qualityStatus || 'PENDING'}
               </Badge>
             </div>
             <div>
@@ -300,7 +302,7 @@ export function BatchDetailView({ batchId, onUpdateStatus, onPrintBatchSheet, on
             </div>
             <div>
               <div className="text-sm font-medium text-muted-foreground">Pallets</div>
-              <div className="text-lg font-semibold">{batch.pallets.length}</div>
+              <div className="text-lg font-semibold">{batch.pallets?.length || 0}</div>
             </div>
           </div>
         </CardContent>
@@ -325,15 +327,15 @@ export function BatchDetailView({ batchId, onUpdateStatus, onPrintBatchSheet, on
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">Daily Lot</div>
-                    <div>{batch.dailyLot}</div>
+                    <div>{batch.dailyLot || 'Not assigned'}</div>
                   </div>
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">Cake Lot</div>
-                    <div>{batch.cakeLot}</div>
+                    <div>{batch.cakeLot || 'Not assigned'}</div>
                   </div>
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">Icing Lot</div>
-                    <div>{batch.icingLot}</div>
+                    <div>{batch.icingLot || 'Not assigned'}</div>
                   </div>
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">Production Line</div>
@@ -342,11 +344,11 @@ export function BatchDetailView({ batchId, onUpdateStatus, onPrintBatchSheet, on
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Planned Quantity</div>
-                  <div>{batch.plannedQuantity} {batch.unitOfMeasure}</div>
+                  <div>{batch.plannedQuantity || 'Not set'} {batch.unitOfMeasure || 'units'}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Actual Quantity</div>
-                  <div>{batch.actualQuantity || 'TBD'} {batch.actualQuantity ? batch.unitOfMeasure : ''}</div>
+                  <div>{batch.actualQuantity || 'TBD'} {batch.actualQuantity ? (batch.unitOfMeasure || 'units') : ''}</div>
                 </div>
               </CardContent>
             </Card>
@@ -363,7 +365,7 @@ export function BatchDetailView({ batchId, onUpdateStatus, onPrintBatchSheet, on
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Assistant Operators</div>
                   <div>
-                    {batch.assistantOperators.length > 0 
+                    {(batch.assistantOperators && batch.assistantOperators.length > 0) 
                       ? batch.assistantOperators.join(', ')
                       : 'None assigned'
                     }
@@ -437,7 +439,7 @@ export function BatchDetailView({ batchId, onUpdateStatus, onPrintBatchSheet, on
               <CardDescription>Complete traceability for all ingredients</CardDescription>
             </CardHeader>
             <CardContent>
-              {batch.batchIngredients.length === 0 ? (
+              {(!batch.batchIngredients || batch.batchIngredients.length === 0) ? (
                 <div className="text-center py-8 text-muted-foreground">
                   No ingredient lots recorded for this batch.
                 </div>
@@ -496,7 +498,7 @@ export function BatchDetailView({ batchId, onUpdateStatus, onPrintBatchSheet, on
               <CardDescription>Track all pallets from this production run</CardDescription>
             </CardHeader>
             <CardContent>
-              {batch.pallets.length === 0 ? (
+              {(!batch.pallets || batch.pallets.length === 0) ? (
                 <div className="text-center py-8 text-muted-foreground">
                   No pallets recorded for this batch.
                 </div>
@@ -545,8 +547,8 @@ export function BatchDetailView({ batchId, onUpdateStatus, onPrintBatchSheet, on
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Quality Status</div>
-                  <Badge className={qualityStatusColors[batch.qualityStatus as keyof typeof qualityStatusColors]}>
-                    {batch.qualityStatus}
+                  <Badge className={qualityStatusColors[(batch.qualityStatus || 'PENDING') as keyof typeof qualityStatusColors]}>
+                    {batch.qualityStatus || 'PENDING'}
                   </Badge>
                 </div>
                 <div>
@@ -706,6 +708,7 @@ export function BatchDetailView({ batchId, onUpdateStatus, onPrintBatchSheet, on
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

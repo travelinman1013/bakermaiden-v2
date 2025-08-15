@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ErrorBoundary, PrintErrorFallback } from '@/components/ui/error-boundary';
 import QRCode from 'qrcode';
 
 interface PrintableBatchSheetProps {
@@ -38,7 +39,7 @@ interface ProductionRunDetail {
     name: string;
     description: string | null;
     version: string;
-  };
+  } | null;
   batchIngredients: Array<{
     id: number;
     quantityUsed: number;
@@ -132,7 +133,7 @@ export function PrintableBatchSheet({ batchId, onClose }: PrintableBatchSheetPro
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Batch Sheet - ${batch?.batchNumber}</title>
+          <title>Batch Sheet - ${batch?.batchNumber || 'Unknown Batch'}</title>
           <style>
             ${getPreviewStyles()}
           </style>
@@ -303,7 +304,8 @@ export function PrintableBatchSheet({ batchId, onClose }: PrintableBatchSheetPro
   }
 
   return (
-    <div className="space-y-4">
+    <ErrorBoundary fallback={PrintErrorFallback}>
+      <div className="space-y-4">
       <div className="no-print flex justify-between items-center">
         <h2 className="text-2xl font-bold">Batch Sheet Preview</h2>
         <div className="flex gap-2">
@@ -348,39 +350,39 @@ export function PrintableBatchSheet({ batchId, onClose }: PrintableBatchSheetPro
           <div className="info-grid">
             <div className="info-item">
               <div className="info-label">BATCH NUMBER</div>
-              <div className="info-value font-bold text-lg">{batch.batchNumber}</div>
+              <div className="info-value font-bold text-lg">{batch.batchNumber || 'Unknown Batch'}</div>
             </div>
             <div className="info-item">
               <div className="info-label">RECIPE</div>
-              <div className="info-value font-bold">{batch.recipe.name} v{batch.recipe.version}</div>
+              <div className="info-value font-bold">{batch.recipe?.name || 'Unknown Recipe'} v{batch.recipe?.version || 'N/A'}</div>
             </div>
             <div className="info-item">
               <div className="info-label">DAILY LOT</div>
-              <div className="info-value">{batch.dailyLot}</div>
+              <div className="info-value">{batch.dailyLot || 'Not assigned'}</div>
             </div>
             <div className="info-item">
               <div className="info-label">STATUS</div>
               <div className="info-value">
-                <Badge className={batch.status === 'COMPLETED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                  {batch.status.replace('_', ' ')}
+                <Badge className={(batch.status || 'PLANNED') === 'COMPLETED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                  {(batch.status || 'PLANNED').replace('_', ' ')}
                 </Badge>
               </div>
             </div>
             <div className="info-item">
               <div className="info-label">CAKE LOT</div>
-              <div className="info-value">{batch.cakeLot}</div>
+              <div className="info-value">{batch.cakeLot || 'Not assigned'}</div>
             </div>
             <div className="info-item">
               <div className="info-label">ICING LOT</div>
-              <div className="info-value">{batch.icingLot}</div>
+              <div className="info-value">{batch.icingLot || 'Not assigned'}</div>
             </div>
             <div className="info-item">
               <div className="info-label">PLANNED QUANTITY</div>
-              <div className="info-value">{batch.plannedQuantity} {batch.unitOfMeasure}</div>
+              <div className="info-value">{batch.plannedQuantity || 'TBD'} {batch.unitOfMeasure || 'units'}</div>
             </div>
             <div className="info-item">
               <div className="info-label">ACTUAL QUANTITY</div>
-              <div className="info-value font-bold">{batch.actualQuantity || '_____'} {batch.unitOfMeasure}</div>
+              <div className="info-value font-bold">{batch.actualQuantity || '_____'} {batch.actualQuantity ? (batch.unitOfMeasure || 'units') : ''}</div>
             </div>
           </div>
         </div>
@@ -407,7 +409,7 @@ export function PrintableBatchSheet({ batchId, onClose }: PrintableBatchSheetPro
             </div>
           </div>
           
-          {batch.assistantOperators.length > 0 && (
+          {(batch.assistantOperators && batch.assistantOperators.length > 0) && (
             <div className="mt-4">
               <div className="info-label">ASSISTANT OPERATORS:</div>
               <div className="info-value">{batch.assistantOperators.join(', ')}</div>
@@ -418,7 +420,7 @@ export function PrintableBatchSheet({ batchId, onClose }: PrintableBatchSheetPro
         {/* Ingredients */}
         <div className="info-section">
           <div className="section-title">INGREDIENT LOTS USED</div>
-          {batch.batchIngredients.length > 0 ? (
+          {(batch.batchIngredients && batch.batchIngredients.length > 0) ? (
             <table className="ingredients-table">
               <thead>
                 <tr>
@@ -547,6 +549,7 @@ export function PrintableBatchSheet({ batchId, onClose }: PrintableBatchSheetPro
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }

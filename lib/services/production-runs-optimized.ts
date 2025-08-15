@@ -1,4 +1,4 @@
-import { cache } from 'react'
+import { unstable_cache as cache } from 'next/cache'
 import { prisma } from '@/lib/db-optimized'
 import { withOptimizedDatabaseOperation } from '@/lib/db-optimized'
 import { Prisma } from '@prisma/client'

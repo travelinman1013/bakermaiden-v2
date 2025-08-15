@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ErrorBoundary, ProductionTableErrorFallback } from '@/components/ui/error-boundary';
 
 interface ProductionRun {
   id: number;
@@ -355,7 +356,8 @@ export function BatchList({ onViewDetails, onCreateNew, onPrintBatchSheet }: Bat
   }
 
   return (
-    <div className="space-y-6">
+    <ErrorBoundary fallback={ProductionTableErrorFallback}>
+      <div className="space-y-6">
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -483,25 +485,26 @@ export function BatchList({ onViewDetails, onCreateNew, onPrintBatchSheet }: Bat
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
-            <Table>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[800px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Daily Lot</TableHead>
-                  <TableHead>Recipe</TableHead>
-                  <TableHead>Lots</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Yield</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Quality</TableHead>
-                  <TableHead>Operator</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="min-w-[100px]">Daily Lot</TableHead>
+                  <TableHead className="min-w-[140px] hidden sm:table-cell">Recipe</TableHead>
+                  <TableHead className="min-w-[120px] hidden md:table-cell">Lots</TableHead>
+                  <TableHead className="min-w-[100px]">Quantity</TableHead>
+                  <TableHead className="min-w-[80px] hidden md:table-cell">Yield</TableHead>
+                  <TableHead className="min-w-[100px]">Status</TableHead>
+                  <TableHead className="min-w-[80px] hidden lg:table-cell">Quality</TableHead>
+                  <TableHead className="min-w-[100px] hidden md:table-cell">Operator</TableHead>
+                  <TableHead className="min-w-[120px] hidden lg:table-cell">Created</TableHead>
+                  <TableHead className="text-right min-w-[140px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredRuns.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       No production runs found matching your filters.
                       {productionRuns.length === 0 && (
                         <div className="mt-2 text-sm">
@@ -520,9 +523,12 @@ export function BatchList({ onViewDetails, onCreateNew, onPrintBatchSheet }: Bat
                       return (
                     <TableRow key={run.id} className="hover:bg-muted/50">
                       <TableCell className="font-medium">
-                        {run.dailyLot}
+                        <div className="font-medium">{run.dailyLot}</div>
+                        <div className="text-xs text-muted-foreground sm:hidden">
+                          {safeGet(run, 'Recipe.name', 'Unknown Recipe')}
+                        </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <div>
                           <div className="font-medium">
                             {safeGet(run, 'Recipe.name', 'Unknown Recipe')}
@@ -532,8 +538,8 @@ export function BatchList({ onViewDetails, onCreateNew, onPrintBatchSheet }: Bat
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
+                      <TableCell className="hidden md:table-cell">
+                        <div className="text-sm space-y-1">
                           <div>Daily: {run.dailyLot || 'N/A'}</div>
                           <div>Cake: {run.cakeLot || 'N/A'}</div>
                           <div>Icing: {run.icingLot || 'N/A'}</div>
@@ -543,10 +549,10 @@ export function BatchList({ onViewDetails, onCreateNew, onPrintBatchSheet }: Bat
                         <div className="text-sm">
                           <div>Planned: {run.plannedQuantity ?? 'TBD'}</div>
                           <div>Actual: {run.actualQuantity ?? 'TBD'}</div>
-                          <div className="text-muted-foreground">units</div>
+                          <div className="text-muted-foreground text-xs">units</div>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         {(() => {
                           const yield_ = calculateYield(run);
                           return yield_ ? (
@@ -561,28 +567,34 @@ export function BatchList({ onViewDetails, onCreateNew, onPrintBatchSheet }: Bat
                       <TableCell>
                         <Badge 
                           variant="outline" 
-                          className={getQualityStatusBadgeClasses(run.qualityStatus || 'pending')}
+                          className={`text-xs ${getQualityStatusBadgeClasses(run.qualityStatus || 'pending')}`}
                         >
                           {((run.qualityStatus || 'pending').replace('_', ' '))}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <div className="text-sm">
-                          {run.primaryOperatorId ? `Operator ${run.primaryOperatorId}` : 'Not assigned'}
+                          {run.primaryOperatorId ? `Op. ${run.primaryOperatorId}` : 'Not assigned'}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div className="text-sm">
+                          {run.primaryOperatorId ? `Op. ${run.primaryOperatorId}` : 'Unassigned'}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         <div className="text-sm">
                           {formatDate(run.createdAt)}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-1 flex-col sm:flex-row">
                           {onViewDetails && (
                             <Button 
                               variant="outline" 
                               size="sm"
                               onClick={() => onViewDetails(run.id)}
+                              className="text-xs px-2 py-1"
                             >
                               View
                             </Button>
@@ -592,6 +604,7 @@ export function BatchList({ onViewDetails, onCreateNew, onPrintBatchSheet }: Bat
                               variant="outline" 
                               size="sm"
                               onClick={() => onPrintBatchSheet(run.id)}
+                              className="text-xs px-2 py-1"
                             >
                               Print
                             </Button>
@@ -604,7 +617,7 @@ export function BatchList({ onViewDetails, onCreateNew, onPrintBatchSheet }: Bat
                       console.error('Error rendering production run:', run, error);
                       return (
                         <TableRow key={run?.id || Math.random()}>
-                          <TableCell colSpan={9} className="text-center py-4 text-red-600">
+                          <TableCell colSpan={10} className="text-center py-4 text-red-600">
                             Error displaying production run data
                           </TableCell>
                         </TableRow>
@@ -613,10 +626,12 @@ export function BatchList({ onViewDetails, onCreateNew, onPrintBatchSheet }: Bat
                   }).filter(Boolean)
                 )}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </ErrorBoundary>
   );
 }
