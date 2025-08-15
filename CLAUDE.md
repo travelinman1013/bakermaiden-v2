@@ -75,7 +75,7 @@ MANDATORY: Always check task status before writing any code:
 archon:manage_task(
   action="list",
   filter_by="project", 
-  filter_value="[42186364-ed6b-400b-9f21-10b8686d1341]",
+  filter_value="[project_id]",
   include_closed=false
 )
 
@@ -84,7 +84,7 @@ archon:manage_task(
   action="list",
   filter_by="status",
   filter_value="todo",
-  project_id="[42186364-ed6b-400b-9f21-10b8686d1341]"
+  project_id="[project_id]"
 )
 Task-Specific Research
 For each task, conduct focused research:
@@ -223,13 +223,13 @@ Feature-Based Organization
 Use features to organize related tasks:
 
 # Get current project features
-archon:get_project_features(project_id="42186364-ed6b-400b-9f21-10b8686d1341")
+archon:get_project_features(project_id="...")
 
 # Create tasks aligned with features
 archon:manage_task(
   action="create",
-  project_id="42186364-ed6b-400b-9f21-10b8686d1341",
-  title="BAKERMAIDEN-V2",
+  project_id="...",
+  title="...",
   feature="Authentication",  # Align with project features
   task_order=8
 )
