@@ -44,7 +44,7 @@ interface IngredientLot {
   supplierName: string;
   expirationDate: string;
   qualityStatus: string;
-  ingredient: Ingredient;
+  Ingredient: Ingredient; // Capital I to match Prisma schema
 }
 
 interface ProductionRunFormProps {
@@ -366,7 +366,7 @@ export function ProductionRunForm({
                         return (
                           <div key={selectedLot.lotId} className="flex items-center justify-between p-3 border rounded-lg">
                             <div className="flex-1">
-                              <div className="font-medium">{lot.ingredient.name}</div>
+                              <div className="font-medium">{lot.Ingredient?.name || 'Unknown Ingredient'}</div>
                               <div className="text-sm text-muted-foreground">
                                 Lot: {lot.internalLotCode} | Supplier: {lot.supplierName} | 
                                 Available: {lot.quantityRemaining}
@@ -375,11 +375,11 @@ export function ProductionRunForm({
                                 <Badge variant={lot.qualityStatus === 'passed' ? 'default' : 'secondary'}>
                                   {lot.qualityStatus}
                                 </Badge>
-                                {lot.ingredient.allergens.map(allergen => (
+                                {lot.Ingredient?.allergens?.map(allergen => (
                                   <Badge key={allergen} variant="outline" className="text-xs">
                                     {allergen}
                                   </Badge>
-                                ))}
+                                )) || []}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -418,8 +418,8 @@ export function ProductionRunForm({
                     onValueChange={(value) => {
                       const lotId = Number(value);
                       const lot = availableIngredientLots.find(l => l.id === lotId);
-                      if (lot) {
-                        addIngredientLot(lot.ingredient.id, lotId, 1);
+                      if (lot && lot.Ingredient) {
+                        addIngredientLot(lot.Ingredient.id, lotId, 1);
                       }
                     }}
                   >
@@ -432,7 +432,7 @@ export function ProductionRunForm({
                         .map((lot) => (
                           <SelectItem key={lot.id} value={String(lot.id)}>
                             <div className="flex flex-col">
-                              <div className="font-medium">{lot.ingredient.name}</div>
+                              <div className="font-medium">{lot.Ingredient?.name || 'Unknown Ingredient'}</div>
                               <div className="text-xs text-muted-foreground">
                                 {lot.internalLotCode} - {lot.quantityRemaining} available
                               </div>
